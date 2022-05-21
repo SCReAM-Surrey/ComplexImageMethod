@@ -120,7 +120,7 @@ class ImageSource:
 
         Returns
         -------
-        Strength of image source
+        None
 
         """
         
@@ -168,7 +168,7 @@ class ImageSource:
             
         #attenuate by strength of source
         self.strength[wallID] *= self.sourceStrength[wallID]
-        return self.strength[wallID]
+      
             
             
         

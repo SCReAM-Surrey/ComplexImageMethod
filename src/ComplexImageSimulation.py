@@ -57,21 +57,26 @@ class ComplexImageSimulation:
                     #these act as virtual sources for all real walls except its parent wall
                     for wallName in wall_list.keys():
                         
+        
                         if wallName == whichWall:
+                            
+                            # calculate reflected pressure due to this image source
+                            [k, r] = np.meshgrid(self.wave_num, curImageSource.r)
+                            kr = np.multiply(k,r)                     
+                            reflectedPressure += np.divide(np.exp(1j*kr),kr) * curImageSource.sourceStrength[wallName]
+                       
                             # no attenuation of strength, same as source's strength
                             curImageSource.strength[wallName] = curImageSource.sourceStrength[wallName]
-                            continue
+                        
                         else:
                             #real wall, not any of the virtual walls
                             mainWall = [wall for wall in wall_list[wallName] if wall.order == 1][0]
                             
-                            # calculate strength of image source
-                            imgStrength = curImageSource.calculateImageStrength(mainWall, wallName, self.wave_num)
+                            # current image source acts as virtual source for the other walls 
+                            # with different strenghts
+                            curImageSource.calculateImageStrength(mainWall, wallName, self.wave_num)
                             
-                            [k, r] = np.meshgrid(self.wave_num, curImageSource.r)
-                            kr = np.multiply(k,r)                     
-                            reflectedPressure += np.divide(np.exp(-1j*kr),kr) * imgStrength
-                            
+
                     
                     # now is the right time to append it to the list of image sources
                     reflect.addImageSource(curImageSource)
@@ -88,7 +93,7 @@ class ComplexImageSimulation:
         
         [k, r0] = np.meshgrid(self.wave_num, dis)
         kr0 = np.multiply(k,r0) 
-        directPressure = np.divide(np.exp(-1j*kr0),kr0) 
+        directPressure = np.divide(np.exp(1j*kr0),kr0) 
         
         #total pressure is the sum of direct and reflceted pressures
         totalPressure = directPressure + reflectedPressure
