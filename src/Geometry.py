@@ -428,7 +428,7 @@ class Cuboid(Room):
                         newD = reference_plane.getPointReflection(sibling.wall_data.posD)
 
                         new_reflection = Wall(newA, newB, newC, newD, i)
-                        new_reflection.setWallImpedance(sibling.wall_data.wallImpedances[k])
+                        new_reflection.setWallImpedance(sibling.wall_data.wallImpedance)   # not sure this does the correct thing
                         new_reflection.setPlaneCoefficients()
 
                         new_leaf = WallTree(reference_wall,  # parent
@@ -507,7 +507,7 @@ class Wall:
         vec = midPoint.subtract(point)
         unit_vec = vec/ np.linalg.norm(vec)
         
-        normal = self.plane.normal
+        normal = np.abs(self.plane.normal)
         unit_normal = normal/np.linalg.norm(normal)
         
         angle = np.arccos(np.dot(unit_vec, unit_normal))

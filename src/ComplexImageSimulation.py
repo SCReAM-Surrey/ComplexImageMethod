@@ -30,21 +30,25 @@ class ComplexImageSimulation:
     def run(self):
                
         #list of real and virtual walls upto given order
-        wall_list = self.room.shape.setWallPosition(self.maxOrder, self.room.wallImpedance)
+        wall_list = self.room.shape.setWallPositionWithWallTree(self.source, self.maxOrder, self.room.wallImpedance)
 
         reflectedPressure = np.zeros((len(self.mic_array), len(self.wave_num)), dtype = complex)
         
         #create reflection object
-        reflect = ref.Reflection(self.source)
+        reflect = ref.Reflection(self.source, self.maxOrder)
+        
+        real_walls = wall_list.children
         
         #loop through reflection orders
         for order in range(1, self.maxOrder+1):
             
             # loop through each plane - floor, ceiling etc
-            for whichWall in wall_list.keys():
+            for mainWall in real_walls:
             
                 #walls corresponding to this reflection order
-                walls_thisOrder = [wall for wall in wall_list[whichWall] if wall.order == order]
+                whichWall = mainWall.wall_type
+                walls_thisOrder = [wall for wall in wall_list.get_children_of_order(order) if wall.wall_type == whichWall]
+                
                 
                 #find image source corresponding to particular order and linked with thisWall
                 for thisWall in walls_thisOrder:
@@ -54,32 +58,25 @@ class ComplexImageSimulation:
                     #find receiver distance and angle from image source
                     curImageSource.getRelativeReceiverParameters(self.mic_array)
                     
-                    #these act as virtual sources for all real walls except its parent wall
-                    for wallName in wall_list.keys():
+                    curImageSource.calculateImageStrength(thisWall.wall_data, whichWall, self.wave_num)
+                    
+                    #this acts as virtual sources for other walls
+                    for otherWall in real_walls: 
                         
-        
+                        wallName = otherWall.wall_type
+                        
+                        curImageSource.calculateImageStrength(otherWall.wall_data, wallName, self.wave_num)
+
                         if wallName == whichWall:
-                            
+                             
                             # calculate reflected pressure due to this image source
                             [k, r] = np.meshgrid(self.wave_num, curImageSource.r)
                             kr = np.multiply(k,r)                     
-                            reflectedPressure += np.divide(np.exp(1j*kr),kr) * curImageSource.sourceStrength[wallName]
-                       
-                            # no attenuation of strength, same as source's strength
-                            curImageSource.strength[wallName] = curImageSource.sourceStrength[wallName]
-                        
-                        else:
-                            #real wall, not any of the virtual walls
-                            mainWall = [wall for wall in wall_list[wallName] if wall.order == 1][0]
-                            
-                            # current image source acts as virtual source for the other walls 
-                            # with different strenghts
-                            curImageSource.calculateImageStrength(mainWall, wallName, self.wave_num)
-                            
+                            reflectedPressure += np.divide(np.exp(1j*kr),kr) * curImageSource.strength[wallName]
 
                     
                     # now is the right time to append it to the list of image sources
-                    reflect.addImageSource(curImageSource)
+                    reflect.addImageSource(curImageSource, order)
                             
                             
             print('Reflected pressure calculated for reflection order ', str(order))

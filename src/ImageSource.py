@@ -47,7 +47,8 @@ class ImageSource:
         self.sourceStrength = sourceStrength
         self.order = order
         self.wall = wall
-        self.pos = wall.plane.getPointReflection(sourcePos)     #position of image source
+        # self.pos = wall.plane.getPointReflection(sourcePos)     #position of image source
+        self.pos = wall.compute_img_source()         #position of image source
         self.strength = dict()
         self.theta = []      #angle with receiver
         self.r = []         #distance from reciver
@@ -137,13 +138,12 @@ class ImageSource:
         beta = wall.wallImpedance
         [beta, theta] = np.meshgrid(beta, self.theta)
         gamma0 = np.cos(theta)
-        
-        R0 = np.divide(gamma0 - beta, gamma0 + beta)
-        rho = np.divide(gamma0 + beta, np.sqrt(2*(1 + np.multiply(gamma0, beta))))
-        
-        
+
+
         
         if self.finite_walls:
+            R0 = np.divide(gamma0 - beta, gamma0 + beta)
+            rho = np.divide(gamma0 + beta, np.sqrt(2*(1 + np.multiply(gamma0, beta))))
             etaMax = theta - (np.ones((Ny,Nx)) * angleLims[0])
             tMax = -1j * (1 - np.cos(etaMax))
         
@@ -157,11 +157,14 @@ class ImageSource:
         else:
             
             
-            #  slower version with mpmath
-            # rho = 1j*np.multiply(kr, np.power(rho,2))
-            # self.strength[wallID] = R0 + (1-R0)*(np.power(rho, 0.25)*np.exp(rho/2)*myWhittaker(rho))
-            
+            # slower version with mpmath
+            # rho = -1j*np.multiply(kr, np.power(rho,2))
+            # self.strength[wallID] = R0 + (1-R0)*(1 - np.sqrt(np.pi*rho)*np.exp(rho)*(1 - np.sqrt(erfc(rho))))
+
             # faster version with scipy
+            R0 = np.divide(gamma0*beta - 1.0, beta*gamma0 + 1.0)
+            # R0 = np.divide(gamma0 - beta, gamma0 + beta)
+
             w = np.sqrt(1j*kr/2.0) * (beta+gamma0) 
             self.strength[wallID] = R0 + (1-R0)*(1 + (1j*w*np.sqrt(np.pi)*np.exp(-np.power(w,2))*
                                                       erfc(-1j*w)))
@@ -194,6 +197,9 @@ class ImageSource:
 
         """
         return  np.arccos(np.dot(v1, v2)/(np.linalg.norm(v1) * np.linalg.norm(v2)))
+    
+    
+        
 
         
         
