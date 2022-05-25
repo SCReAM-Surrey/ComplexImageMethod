@@ -7,7 +7,7 @@ Created on Fri Apr  1 11:36:46 2022
 """
 
 import numpy as np
-import ComplexImageMethod.src.Reflection as ref
+import ComplexImageMethod.src.SimpleImageSource as simp_img
 
 
 
@@ -23,67 +23,72 @@ class ComplexImageSimulation:
             self.finiteWall = False
         else:
             self.finiteWall = args[0]
+            
         
                 
-
-        
     def run(self):
-               
-        #list of real and virtual walls upto given order
-        wall_list = self.room.shape.setWallPositionWithWallTree(self.source, self.maxOrder, self.room.wallImpedance)
-
+        
+        walls = self.room.shape.setWallPosition(self.room.wallImpedance)
+        
+        #I am trying to build a dictionary with tuple as keys
+        wallNames = [*walls]
+        IDs = list(tuple())
+        for j in range(self.room.shape.nWalls):
+            for i in range(1, self.maxOrder+2):
+                IDs.append((wallNames[j], i))
+        
+        self.imageSrc = {(wallID, order): [] for (wallID, order) in IDs} 
+        
         reflectedPressure = np.zeros((len(self.mic_array), len(self.wave_num)), dtype = complex)
-        
-        #create reflection object
-        reflect = ref.Reflection(self.source, self.maxOrder)
-        
-        real_walls = wall_list.children
-        
-        #loop through reflection orders
-        for order in range(1, self.maxOrder+1):
-            
-            # loop through each plane - floor, ceiling etc
-            for mainWall in real_walls:
-            
-                #walls corresponding to this reflection order
-                whichWall = mainWall.wall_type
-                walls_thisOrder = [wall for wall in wall_list.get_children_of_order(order) if wall.wall_type == whichWall]
 
+
+        for i in range(1, self.maxOrder+1):
+            
+            for wallID in wallNames:
                 
-                #find image source corresponding to particular order and linked with thisWall
-                for thisWall in walls_thisOrder:
-
-                    curImageSource = reflect.createImageSource(thisWall, whichWall, order, self.room, self.finiteWall)
+                wall = walls[wallID]
+                
+                if i == 1:
                     
+                    S0 = simp_img.ImageSource(self.source, 1.0, wall.plane.getPointReflection(self.source), wall, i)
                     #find receiver distance and angle from image source
-                    curImageSource.getRelativeReceiverParameters(self.mic_array)
+                    S0.getRelativeReceiverParameters(self.mic_array)
+                    # calculate image strength
+                    S0.calculateImageStrength(wall, self.wave_num)
                     
+                    self.imageSrc[wallID, i].append(S0)
+                
+                for S in self.imageSrc[wallID, i]:
+                    # calculate reflected pressure due to this image source
+                    [k, r] = np.meshgrid(self.wave_num, S.r)
+                    kr = np.multiply(k,r)  
+                    reflectedPressure += np.divide(np.exp(1j*kr),kr) * S.strength
                     
-                    #this acts as virtual source for other walls
-                    for otherWall in real_walls: 
-                        
-                        wallName = otherWall.wall_type
-                        
-                        # calculate image strength
-                        curImageSource.calculateImageStrength(otherWall.wall_data, wallName, self.wave_num)
-
-                        if wallName == whichWall:
-                             
-                            # calculate reflected pressure due to this image source
-                            [k, r] = np.meshgrid(self.wave_num, curImageSource.r)
-                            kr = np.multiply(k,r)                     
-                            reflectedPressure += np.divide(np.exp(1j*kr),kr) * curImageSource.strength[wallName]
-
-                    
-                    # now is the right time to append it to the list of image sources
-                    reflect.addImageSource(curImageSource, order)
+                    if i < self.maxOrder:
+                        for otherWallID in wallNames:
                             
-                            
-            print('Reflected pressure calculated for reflection order ', str(order))
-           
-        
-        
-        #calculate direct pressure
+                            if otherWallID == wallID:
+                                continue
+                            else:
+                                otherWall = walls[otherWallID]
+                                # check if current image source is behind wall or not
+                                if not otherWall.isPointBehindWall(S.pos):
+                                    Sm = simp_img.ImageSource(S.pos, S.strength, 
+                                                              otherWall.plane.getPointReflection(S.pos), otherWall, i+1)
+                                    
+                                    Sm.getRelativeReceiverParameters(self.mic_array)
+                                    
+                                    Sm.calculateImageStrength(otherWall, self.wave_num)
+                                    
+                                    self.imageSrc[otherWallID, i+1].append(Sm)
+                                    
+                                # else:
+                                #     print('Image position', S.pos.x, S.pos.y, S.pos.z, ' is behind ', wallID, ' wall')
+                                    
+            print('Reflected pressure calculated for reflection order ', str(i))
+          
+                    
+         #calculate direct pressure
         dis = np.zeros(len(self.mic_array))
         for i in range(len(self.mic_array)):
             dis[i] = (self.source.getDistance(self.mic_array[i]))
@@ -97,19 +102,22 @@ class ComplexImageSimulation:
         
         
         return reflectedPressure, totalPressure
+                                
+                                
+                    
+                
+
+
+                                
+                     
+
+                    
+                    
+                    
+                    
             
-                            
-                    
-                    
 
-        
-        
-        
-        
-        
-
-
-        
+   
         
         
     

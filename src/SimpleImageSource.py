@@ -1,24 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Sep 23 15:12:36 2021
+Created on Wed May 25 19:20:15 2022
 
 @author: od0014
 """
-
 import numpy as np
 import mpmath as mp
 from scipy.special import erfc
-
-
-
-def myWhittaker(rho):
-    ypts = []
-    rho_list = rho.tolist()
-    for i in range(len(rho_list)):
-        for x in rho_list[i]:
-            ypts.append(mp.whitw(mp.mpf(-0.25), mp.mpf(0.25), x))
-    return np.reshape(np.array(ypts, dtype=complex), np.shape(rho))
 
 
 def myGammainc(c,B,t):
@@ -31,8 +20,6 @@ def myGammainc(c,B,t):
             ypts.append(mp.gammainc(0.5, c_list[i][k]*(t_list[i][k]-1j*B_list[i][k])))
             
     return np.reshape(np.array(ypts, dtype=complex), np.shape(c))
-            
-    
 
 
 class ImageSource:
@@ -41,18 +28,17 @@ class ImageSource:
     Class that keeps track of the image sources and their orders
     """
 
-    def __init__(self, sourcePos, sourceStrength, wall, order, *args):
+    def __init__(self, sourcePos, sourceStrength, pos,  wall, order, *args):
         
+        self.wall = wall
+        self.pos = pos         #position of image source
         self.sourcePos = sourcePos
         self.sourceStrength = sourceStrength
+        self.strength = 1.0
         self.order = order
-        self.wall = wall
-        self.pos = wall.compute_img_source()         #position of image source
-        self.strength = dict()
         self.theta = []      #angle with receiver
         self.r = []         #distance from reciver
-        # self.otherWalls = dict()
-        # self.angleLims = []   #angle between IS wall edges
+     
         
         if len(args) == 0:
             self.finite_walls = False
@@ -106,7 +92,7 @@ class ImageSource:
         return angleLims
     
     
-    def calculateImageStrength(self, wall, wallID, wav_nums):
+    def calculateImageStrength(self, wall, wav_nums):
         """
         Calculates image source strength based on spherical scattering from 
         wall
@@ -114,7 +100,6 @@ class ImageSource:
         Parameters
         ----------
         wall     : the wall for which it acts as a virtual source
-        wallID   : type of wall - floor, ceiling etc
         wav_nums : array
             wave numbers to evaluate on.
 
@@ -125,7 +110,6 @@ class ImageSource:
         """
         
         assert len(wav_nums) == len(wall.wallImpedance)
-        angleLims = self.calculateAngleLimitsWithOtherWalls(wall)
         
         
         Nx = len(wav_nums)
@@ -143,6 +127,7 @@ class ImageSource:
         if self.finite_walls:
             R0 = np.divide(gamma0 - beta, gamma0 + beta)
             rho = np.divide(gamma0 + beta, np.sqrt(2*(1 + np.multiply(gamma0, beta))))
+            angleLims = self.calculateAngleLimitsWithOtherWalls(wall)
             etaMax = theta - (np.ones((Ny,Nx)) * angleLims[0])
             tMax = -1j * (1 - np.cos(etaMax))
         
@@ -150,26 +135,20 @@ class ImageSource:
             tMin = -1j * (1-np.cos(etaMin))
             
             integral = self.evaluateIntegral(kr, rho, tMax) - self.evaluateIntegral(kr, rho, tMin) 
-            self.strength[wallID] = R0 + (1-R0)*(1 - (rho*np.exp(-1j*kr*rho)*integral))
+            self.strength = R0 + (1-R0)*(1 - (rho*np.exp(-1j*kr*rho)*integral))
             
             
         else:
-            
-            
-            # slower version with mpmath
-            # rho = -1j*np.multiply(kr, np.power(rho,2))
-            # self.strength[wallID] = R0 + (1-R0)*(1 - np.sqrt(np.pi*rho)*np.exp(rho)*(1 - np.sqrt(erfc(rho))))
-
+             
+          
             # faster version with scipy
             R0 = np.divide(gamma0*beta - 1.0, beta*gamma0 + 1.0)
-            # R0 = np.divide(gamma0 - beta, gamma0 + beta)
-
             w = np.sqrt(1j*kr/2.0) * (beta+gamma0) 
-            self.strength[wallID] = R0 + (1-R0)*(1 + (1j*w*np.sqrt(np.pi)*np.exp(-np.power(w,2))*
+            self.strength = R0 + (1-R0)*(1 + (1j*w*np.sqrt(np.pi)*np.exp(-np.power(w,2))*
                                                       erfc(-1j*w)))
             
         #attenuate by strength of source
-        self.strength[wallID] *= self.sourceStrength[wallID]
+        self.strength *= self.sourceStrength
       
             
             
@@ -199,21 +178,3 @@ class ImageSource:
     
     
         
-
-        
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

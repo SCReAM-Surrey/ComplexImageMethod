@@ -8,7 +8,7 @@ Created on Fri Apr  1 11:42:35 2022
 
 import numpy as np
 import ComplexImageMethod.src.ComplexImageSimulation as sim
-import ComplexImageMethod.src.Geometry as geom
+import ComplexImageMethod.src.SimpleGeometry as geom
 from SDNPy.src.utils import visualize_room as vis
 from matplotlib import cm
 import matplotlib.pyplot as plt
@@ -24,7 +24,7 @@ H = 4.5
 #number of wave numbers 
 Nx = 100
 #number of microphone positions
-Ny = 100
+Ny = 200
 
 srcPos = geom.Point(0.5,2.3,1.2)
 sourceAngle = np.arctan(srcPos.y/srcPos.x)
@@ -47,7 +47,7 @@ for i in range(Ny):
 
 ######################################
 #run the simulation
-orders = [1,2,3]
+orders = [3,5]
 
 for order in orders:
     
@@ -58,14 +58,15 @@ for order in orders:
     #add wall impedance
     # loop over 6 walls
     nWalls = room.shape.nWalls
+    wallNames = ['floor', 'ceiling', 'left', 'right', 'front','back']
 
 
     for k in range(nWalls):
         # constant admittance
-        room.wallImpedance.append([0.5+0.5*1j for i in range(Nx)])
+        room.wallImpedance[wallNames[k]]= [0 for i in range(Nx)]
         
         # frequency-dependent admittance
-        # room.wallImpedance.append([(0.5+0.5*1j) * (1.0/(1+np.exp(-0.1*wave_nums[i]))) for i in range(Nx)])
+        # room.wallImpedance[wallNames[k]] = [(0.5+0.5*1j) * (1.0/(1+np.exp(-0.1*wave_nums[i]))) for i in range(Nx)]
     
     
     csim = sim.ComplexImageSimulation(room, srcPos, receiverPos, wave_nums, order)
@@ -108,7 +109,7 @@ for order in orders:
     ax.set_ylabel('Angle of receiver from origin')
     ax.set_zticks([])
     ax.view_init(270,-90)
-    plt.savefig('../figures/test1_order=' + str(order) + '_surf.eps', format = 'eps')
+    # plt.savefig('../figures/test2_order=' + str(order) + '_surf.eps', format = 'eps')
     plt.show()
     
     
@@ -130,7 +131,7 @@ for order in orders:
                         top=0.9, 
                         wspace=0.4, 
                         hspace=1.0)
-    plt.savefig('../figures/test1_order=' + str(order) + '_polar.eps', format = 'eps')
+    # plt.savefig('../figures/test2_order=' + str(order) + '_polar.eps', format = 'eps')
     plt.show()
 
 
