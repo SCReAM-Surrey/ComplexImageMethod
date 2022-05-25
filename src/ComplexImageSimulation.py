@@ -48,7 +48,7 @@ class ComplexImageSimulation:
                 #walls corresponding to this reflection order
                 whichWall = mainWall.wall_type
                 walls_thisOrder = [wall for wall in wall_list.get_children_of_order(order) if wall.wall_type == whichWall]
-                
+
                 
                 #find image source corresponding to particular order and linked with thisWall
                 for thisWall in walls_thisOrder:
@@ -58,13 +58,13 @@ class ComplexImageSimulation:
                     #find receiver distance and angle from image source
                     curImageSource.getRelativeReceiverParameters(self.mic_array)
                     
-                    curImageSource.calculateImageStrength(thisWall.wall_data, whichWall, self.wave_num)
                     
-                    #this acts as virtual sources for other walls
+                    #this acts as virtual source for other walls
                     for otherWall in real_walls: 
                         
                         wallName = otherWall.wall_type
                         
+                        # calculate image strength
                         curImageSource.calculateImageStrength(otherWall.wall_data, wallName, self.wave_num)
 
                         if wallName == whichWall:

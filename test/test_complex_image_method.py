@@ -22,9 +22,9 @@ W = 5.0
 H = 4.5
 
 #number of wave numbers 
-Nx = 50
+Nx = 100
 #number of microphone positions
-Ny = 50
+Ny = 100
 
 srcPos = geom.Point(0.5,2.3,1.2)
 sourceAngle = np.arctan(srcPos.y/srcPos.x)
@@ -47,7 +47,7 @@ for i in range(Ny):
 
 ######################################
 #run the simulation
-orders = [5]
+orders = [1,2,3]
 
 for order in orders:
     
@@ -62,7 +62,7 @@ for order in orders:
 
     for k in range(nWalls):
         # constant admittance
-        room.wallImpedance.append([0.95+0.5*1j for i in range(Nx)])
+        room.wallImpedance.append([0.5+0.5*1j for i in range(Nx)])
         
         # frequency-dependent admittance
         # room.wallImpedance.append([(0.5+0.5*1j) * (1.0/(1+np.exp(-0.1*wave_nums[i]))) for i in range(Nx)])
@@ -76,6 +76,7 @@ for order in orders:
     # draw the setup
     # plot to visualize room - optional
     fig = plt.figure()
+    fig.set_size_inches(3.3, 2.5)
     ax = fig.add_subplot(projection='3d')
     vis.plot_room(ax,
                   [room.shape.x / 2, room.shape.y / 2, room.shape.z / 2],
@@ -89,7 +90,7 @@ for order in orders:
     ax.text(2,3,0, r'$\theta = 90^{\circ}$') 
     ax.text(1,1,1.5, r'$\theta = 0^{\circ}$')     
     ax.view_init(45,110)
-    # plt.savefig('../figures/test1_setup.png')
+    # plt.savefig('../figures/test1_setup.png', dpi = 1000)
     plt.show()
     
     
@@ -107,7 +108,7 @@ for order in orders:
     ax.set_ylabel('Angle of receiver from origin')
     ax.set_zticks([])
     ax.view_init(270,-90)
-    plt.savefig('../figures/test1_order=' + str(order) + '_surf.png', dpi=300)
+    plt.savefig('../figures/test1_order=' + str(order) + '_surf.eps', format = 'eps')
     plt.show()
     
     
@@ -129,7 +130,7 @@ for order in orders:
                         top=0.9, 
                         wspace=0.4, 
                         hspace=1.0)
-    plt.savefig('../figures/test1_order=' + str(order) + '_polar.png')
+    plt.savefig('../figures/test1_order=' + str(order) + '_polar.eps', format = 'eps')
     plt.show()
 
 

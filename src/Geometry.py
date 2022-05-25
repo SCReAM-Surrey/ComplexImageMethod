@@ -428,10 +428,23 @@ class Cuboid(Room):
                         newD = reference_plane.getPointReflection(sibling.wall_data.posD)
 
                         new_reflection = Wall(newA, newB, newC, newD, i)
-                        new_reflection.setWallImpedance(sibling.wall_data.wallImpedance)   # not sure this does the correct thing
+                        # this should have the impedance of wall with same wall_type of previous order
+                        new_reflection.setWallImpedance(sibling.wall_data.wallImpedance)   
                         new_reflection.setPlaneCoefficients()
-
-                        new_leaf = WallTree(reference_wall,  # parent
+                        
+# =============================================================================
+#                         Because of this mirroring, a wall that is ceiling is 
+#                         incorrectly labeled as floor
+#                         In general, opposite walls are incorrectly labeled. 
+#                         So, to fix that
+# =============================================================================
+                        if sibling.wall_type == self.getOppositeWallLabel(reference_wall.wall_type):
+                            new_leaf = new_leaf = WallTree(reference_wall,  # parent
+                                            new_reflection,  # wall data
+                                            self.getOppositeWallLabel(sibling.wall_type),  # wall type
+                                            i)  # order
+                        else:
+                            new_leaf = WallTree(reference_wall,  # parent
                                             new_reflection,  # wall data
                                             sibling.wall_type,  # wall type
                                             i)  # order
@@ -442,6 +455,23 @@ class Cuboid(Room):
                         reference_wall.children.append(new_leaf)
 
         return self.wall_tree
+    
+    
+    def getOppositeWallLabel(self,wall_type):
+
+        if wall_type == 'floor':
+            return 'ceiling'
+        elif wall_type == 'ceiling':
+            return  'floor'
+        elif wall_type == 'left':
+            return 'right'
+        elif wall_type == 'right':
+            return 'left'
+        elif wall_type == 'front':
+            return 'back'
+        elif wall_type == 'back':
+            return 'front'
+
 
 
 class Wall:
@@ -522,6 +552,9 @@ class Wall:
             if point.x > (midPoint.x - room.shape.x/2) and point.x < (midPoint.x + room.shape.x/2) \
                 and point.z > (midPoint.z - room.shape.z/2) and (point.z < midPoint.z + room.shape.z/2) \
                     and abs(projection_y) < room.shape.y:
+                        # print('Wall type ' + wallType)
+                        # print('Wall midpoint =', midPoint.x, midPoint.y, midPoint.z)
+                        # print('Image location =', point.x, point.y, point.z)
                         return True
             else:
                 return False

@@ -7,7 +7,7 @@ Created on Mon Apr 11 11:27:59 2022
 """
 
 import ComplexImageMethod.src.ImageSource as ImgSrc
-
+from ComplexImageMethod.src.Geometry import Cuboid as cub
 
 
 class Reflection:
@@ -43,13 +43,16 @@ class Reflection:
             # look only at image sources of previous order
             for img in self.imageSrc[order-1]:
                 if wall.wall_data.boundedByRoom(img.pos, wallType, room):
-                    srcPos = img.pos
-                    srcStrength = img.strength
-                    # if wallType == img.wall.wall_type:
-                    #     oppImg = self.getImageOnOppositeWall(img,order)
-                    #     srcStrength = oppImg.strength
-                    # else:
-                    #     srcStrength = img.strength
+
+                    if wallType == img.wall.wall_type:
+                        # the image source on the opposite wall acts as a virtual source
+                        # in this case
+                        oppImg = self.getImageOnOppositeWall(img,order)
+                        srcPos = oppImg.pos
+                        srcStrength = oppImg.strength
+                    else:
+                        srcPos = img.pos
+                        srcStrength = img.strength
                     break
 
         curImageSource = ImgSrc.ImageSource(srcPos, srcStrength, wall, order, finiteFlag)
@@ -64,19 +67,9 @@ class Reflection:
             
     def getImageOnOppositeWall(self,img,order):
         # I don't know how to explain this but it seemed necessary to me
-        # to get the right source
-        if img.wall.wall_type == 'floor':
-            oppositeWall = 'ceiling'
-        elif img.wall.wall_type == 'ceiling':
-            oppositeWall = 'floor'
-        elif img.wall.wall_type == 'left':
-            oppositeWall = 'right'
-        elif img.wall.wall_type == 'right':
-            oppositeWall = 'left'
-        elif img.wall.wall_type == 'front':
-            oppositeWall = 'back'
-        elif img.wall.wall_type == 'back':
-            oppositeWall = 'front'
+        # to do this to get the right source
+        
+        oppositeWall = cub.getOppositeWallLabel(self,img.wall.wall_type)
             
         oppositeImage = [image for image in self.imageSrc[order-1] if 
                              image.wall.wall_type == oppositeWall]

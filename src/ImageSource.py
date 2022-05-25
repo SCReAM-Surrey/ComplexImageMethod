@@ -47,7 +47,6 @@ class ImageSource:
         self.sourceStrength = sourceStrength
         self.order = order
         self.wall = wall
-        # self.pos = wall.plane.getPointReflection(sourcePos)     #position of image source
         self.pos = wall.compute_img_source()         #position of image source
         self.strength = dict()
         self.theta = []      #angle with receiver
