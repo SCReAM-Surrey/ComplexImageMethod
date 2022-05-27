@@ -141,11 +141,15 @@ class ImageSource:
         else:
              
           
-            # faster version with scipy
-            R0 = np.divide(gamma0*beta - 1.0, beta*gamma0 + 1.0)
-            w = np.sqrt(1j*kr/2.0) * (beta+gamma0) 
-            self.strength = R0 + (1-R0)*(1 + (1j*w*np.sqrt(np.pi)*np.exp(-np.power(w,2))*
-                                                      erfc(-1j*w)))
+            R0 = np.divide(gamma0 - beta, gamma0 + beta)
+            rho = 1j*kr/2.0 * np.divide(np.power(beta + gamma0,2), (1 + beta*gamma0))
+            F = 1 + 1j*np.sqrt(np.pi * rho) * np.exp(-rho) * erfc(-1j*np.sqrt(rho))
+            self.strength = R0 + (1-R0)*F
+            
+            # # faster version with scipy
+            # R0 = np.divide(gamma0*beta - 1.0, beta*gamma0 + 1.0)
+            # w = np.sqrt(1j*kr/2.0) * (beta+gamma0) 
+            # self.strength = R0 + (1-R0)*(1 + (1j*w*np.sqrt(np.pi)*np.exp(-np.power(w,2))* erfc(-1j*w)))
             
         #attenuate by strength of source
         self.strength *= self.sourceStrength

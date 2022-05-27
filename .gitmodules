@@ -1,0 +1,3 @@
+[submodule "pyroomacoustics"]
+	path = pyroomacoustics
+	url = https://github.com/LCAV/pyroomacoustics
