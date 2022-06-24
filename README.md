@@ -8,3 +8,10 @@ complicated geometries nor model scattering due to surface roughness.</p>
 
 <p> This implementation takes in as input room dimensions, source position, microphone array positions, wall impedance and wave numbers to evaluate the solution on,
   and returns as output the total pressure field at the mic array locations.<p>
+
+## Installation
+
+<p> It is best practice to create a virtual environment and then install the package with pip. This automatically downloads the correct versions of the required packages. </p>
+```python3 -m venv env```
+```source env/bin/activate```
+```python3 -m pip install ./```
