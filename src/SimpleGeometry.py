@@ -8,7 +8,6 @@ Created on Wed May 25 18:22:27 2022
 
 import math
 import numpy as np
-from sympy.utilities.iterables import multiset_permutations
 
 
 class Point:
@@ -200,12 +199,12 @@ class Cuboid(Room):
     def setWallPosition(self, wallImpedances):
         
         
-        self.walls['floor'] = Wall('floor', self.z, wallImpedances['floor'])
-        self.walls['ceiling'] = Wall('ceiling', self.z, wallImpedances['ceiling'])
-        self.walls['left'] = Wall('left', self.x, wallImpedances['left'])
-        self.walls['right'] = Wall('right', self.x, wallImpedances['right'])
-        self.walls['front'] = Wall('front', self.y, wallImpedances['front'])
-        self.walls['back'] = Wall('back', self.y, wallImpedances['back'])
+        self.walls['floor'] = Wall('floor', self.x, self.y, self.z, wallImpedances['floor'])
+        self.walls['ceiling'] = Wall('ceiling', self.x, self.y, self.z, wallImpedances['ceiling'])
+        self.walls['left'] = Wall('left', self.x, self.y, self.z, wallImpedances['left'])
+        self.walls['right'] = Wall('right', self.x, self.y, self.z, wallImpedances['right'])
+        self.walls['front'] = Wall('front', self.x, self.y, self.z, wallImpedances['front'])
+        self.walls['back'] = Wall('back', self.x, self.y, self.z, wallImpedances['back'])
         
         return self.walls
         
@@ -224,7 +223,7 @@ class Wall:
     ----------- x
     """
     
-    def __init__(self, wallID, L, impedance):
+    def __init__(self, wallID, L, W, H, impedance):
         
         self.name = wallID
         # these are infinite planes,
@@ -232,21 +231,27 @@ class Wall:
         if self.name == 'floor':
             self.plane = Plane(0,0,-1,0)
             self.posA = Point(0,0,0)
+            self.posD = Point(L,0,0)
         elif self.name == 'ceiling':
-            self.plane = Plane(0,0,1,-L)
-            self.posA = Point(0,0,L)
+            self.plane = Plane(0,0,1,-H)
+            self.posA = Point(0,0,H)
+            self.posD = Point(L,0,H)
         elif self.name == 'left':
             self.plane = Plane(-1,0,0,0)
             self.posA = Point(0,0,0)
+            self.posD = Point(0,W,0)
         elif self.name == 'right':
             self.plane = Plane(1,0,0,-L)
             self.posA = Point(L,0,0)
+            self.posD = Point(L,W,0)
         elif self.name == 'front':
             self.plane = Plane(0,-1,0,0)
             self.posA = Point(0,0,0)
+            self.posD = Point(L,0,0)
         elif self.name == 'back':
-            self.plane = Plane(0,1,0,-L)
-            self.posA = Point(0,L,0)
+            self.plane = Plane(0,1,0,-W)
+            self.posA = Point(0,W,0)
+            self.posD = Point(L,W,0)
             
         #list of impedances at desired wave numbers
         self.wallImpedance = impedance

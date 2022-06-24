@@ -5,7 +5,6 @@ Created on Fri May 27 10:39:38 2022
 
 @author: od0014
 """
-
 import numpy as np
 import pyroomacoustics as pra
 from pyroomacoustics.transform import stft
@@ -13,9 +12,9 @@ from pyroomacoustics import metrics as met
 import matplotlib.pyplot as plt
 from scipy.io.wavfile import write
 from scipy.fft import ifft, fft
-from SDNPy.src.utils import visualize_room as vis
-import ComplexImageMethod.src.SimpleGeometry as geom
-import ComplexImageMethod.src.ComplexImageSimulation as sim
+# from SDNPy.src.utils import visualize_room as vis
+from ComplexImageMethod import SimpleGeometry as geom
+from ComplexImageMethod import ComplexImageSimulation as sim
 plt.rcParams.update({'font.size': 8})
 
 
@@ -102,7 +101,7 @@ beta = absorp_to_admittance(absorp)
 fs = 4000
 
 # order for IM
-ref_order = 20
+ref_order = 5
 
 # =============================================================================
 # create uniform grid of mics
@@ -139,31 +138,28 @@ for i in range(M):
 # =============================================================================
 # plot to visualize room - optional
 
-fig = plt.figure()
-fig.set_size_inches(3.3, 2.5)
-ax = fig.add_subplot(projection='3d')
-vis.plot_room(ax,
-              [room.shape.x / 2, room.shape.y / 2, room.shape.z / 2],
-              room.shape.x, room.shape.y, room.shape.z)
-vis.plot_point(ax, srcPos, 'source')
+# fig = plt.figure()
+# fig.set_size_inches(3.3, 2.5)
+# ax = fig.add_subplot(projection='3d')
+# vis.plot_room(ax,
+#               [room.shape.x / 2, room.shape.y / 2, room.shape.z / 2],
+#               room.shape.x, room.shape.y, room.shape.z)
+# vis.plot_point(ax, srcPos, 'source')
 
-for k in range(M):
-    vis.plot_point(ax, receiverPos[k], 'mic')
+# for k in range(M):
+#     vis.plot_point(ax, receiverPos[k], 'mic')
 
     
-ax.view_init(45,110)
-# plt.savefig('../figures/test_sweep_setup.png', dpi = 1000)
-plt.show()
+# ax.view_init(45,110)
+# # plt.savefig('../figures/test_sweep_setup.png', dpi = 1000)
+# plt.show()
     
     
 # =============================================================================
 # # normal ISM with sweeping echoes
 # =============================================================================
 
-
-
-
-# #  an absorption coefficient of 0 means purely reflective walls
+# an absorption coefficient of 0 means purely reflective walls
 room_ism = pra.ShoeBox(room_size, fs, materials=pra.Material(absorp), max_order = ref_order)
 
 room_ism.add_source(source_loc)
@@ -181,13 +177,14 @@ fft_hop = 16 # hop between analysis frame
 fft_zp = 16  # zero padding
 analysis_window = pra.hann(fft_size)
 
+
 rir_ism = room_ism.rir[which_receiver][0]
 Nfft = len(rir_ism)
 ism_fft = fft(rir_ism)
 freqs = np.linspace(0,fs/2.0,int(Nfft/2))
 
-ssf = met.sweeping_echo_measure(rir_ism,fs, t_min=0, t_max=0.5, fb=100)
-print('ISM sweeping echo measure' , ssf)   
+# ssf = met.sweeping_echo_measure(rir_ism,fs, t_min=0, t_max=0.5, fb=100)
+# print('ISM sweeping echo measure' , ssf)   
 
 plot_spectrogram(rir_ism, fs, fft_size, fft_hop, fft_zp, analysis_window, 'ISM', True, np.round(absorp,3))
 write('../audio/ISM_absorp=' + str(np.round(absorp,3)) + '_order='+ str(ref_order) + '.wav', fs, rir_ism)
@@ -249,8 +246,8 @@ plot_spectrogram(rir_cism, fs, fft_size, fft_hop, fft_zp, analysis_window, 'CISM
 write('../audio/CISM_absorp=' + str(np.round(absorp,3)) + '_order='+ str(ref_order) + '.wav', fs, rir_cism)
 
 
-ssf_c = met.sweeping_echo_measure(rir_cism,fs, t_min=0, t_max=0.5, fb=100)
-print('CISM sweeping echo measure' , ssf_c) 
+# ssf_c = met.sweeping_echo_measure(rir_cism,fs, t_min=0, t_max=0.5, fb=100)
+# print('CISM sweeping echo measure' , ssf_c) 
 
 
 

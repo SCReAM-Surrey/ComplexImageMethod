@@ -7,7 +7,7 @@ Created on Fri Apr  1 11:36:46 2022
 """
 
 import numpy as np
-import ComplexImageMethod.src.SimpleImageSource as simp_img
+from ComplexImageMethod import SimpleImageSource as simp_img
 
 
 

@@ -7,9 +7,9 @@ Created on Fri Apr  1 11:42:35 2022
 """
 
 import numpy as np
-import ComplexImageMethod.src.ComplexImageSimulation as sim
-import ComplexImageMethod.src.SimpleGeometry as geom
-from SDNPy.src.utils import visualize_room as vis
+from ComplexImageMethod import ComplexImageSimulation as sim
+from ComplexImageMethod import SimpleGeometry as geom
+# from SDNPy.src.utils import visualize_room as vis
 from matplotlib import cm
 import matplotlib.pyplot as plt
 plt.rcParams.update({'font.size': 8})
@@ -22,7 +22,7 @@ W = 5.0
 H = 4.5
 
 #number of wave numbers 
-Nx = 100
+Nx = 75
 #number of microphone positions
 Ny = 200
 
@@ -47,7 +47,7 @@ for i in range(Ny):
 
 ######################################
 #run the simulation
-orders = [3,5]
+orders = [1,2,5]
 
 for order in orders:
     
@@ -63,10 +63,10 @@ for order in orders:
 
     for k in range(nWalls):
         # constant admittance
-        room.wallImpedance[wallNames[k]]= [0 for i in range(Nx)]
+        # room.wallImpedance[wallNames[k]]= [0.5*(1+1j) for i in range(Nx)]
         
         # frequency-dependent admittance
-        # room.wallImpedance[wallNames[k]] = [(0.5+0.5*1j) * (1.0/(1+np.exp(-0.1*wave_nums[i]))) for i in range(Nx)]
+        room.wallImpedance[wallNames[k]] = [(0.5+0.5*1j) * (1.0/(1+np.exp(-0.1*wave_nums[i]))) for i in range(Nx)]
     
     
     csim = sim.ComplexImageSimulation(room, srcPos, receiverPos, wave_nums, order)
@@ -76,23 +76,23 @@ for order in orders:
     #####################################
     # draw the setup
     # plot to visualize room - optional
-    fig = plt.figure()
-    fig.set_size_inches(3.3, 2.5)
-    ax = fig.add_subplot(projection='3d')
-    vis.plot_room(ax,
-                  [room.shape.x / 2, room.shape.y / 2, room.shape.z / 2],
-                  room.shape.x, room.shape.y, room.shape.z)
-    vis.plot_point(ax, srcPos, 'source')
+    # fig = plt.figure()
+    # fig.set_size_inches(3.3, 2.5)
+    # ax = fig.add_subplot(projection='3d')
+    # vis.plot_room(ax,
+    #               [room.shape.x / 2, room.shape.y / 2, room.shape.z / 2],
+    #               room.shape.x, room.shape.y, room.shape.z)
+    # vis.plot_point(ax, srcPos, 'source')
     
-    for k in range(Ny):
-        vis.plot_point(ax, receiverPos[k], 'mic')
+    # for k in range(Ny):
+    #     vis.plot_point(ax, receiverPos[k], 'mic')
     
         
-    ax.text(2,3,0, r'$\theta = 90^{\circ}$') 
-    ax.text(1,1,1.5, r'$\theta = 0^{\circ}$')     
-    ax.view_init(45,110)
-    # plt.savefig('../figures/test1_setup.png', dpi = 1000)
-    plt.show()
+    # ax.text(2,3,0, r'$\theta = 90^{\circ}$') 
+    # ax.text(1,1,1.5, r'$\theta = 0^{\circ}$')     
+    # ax.view_init(45,110)
+    # # plt.savefig('../figures/test1_setup.png', dpi = 1000)
+    # plt.show()
     
     
     
@@ -103,13 +103,13 @@ for order in orders:
     fig.set_size_inches(3.3, 2.5)
     ax = fig.add_subplot(projection='3d')
     surf = ax.plot_surface(K, Theta/np.pi, 20*np.log10(np.abs(total_pressure)), cmap=cm.jet, linewidth=0.1)
-    if order == len(orders):
+    if order == len(orders)-1:
         fig.colorbar(surf, shrink=0.5, aspect=5, label = 'Pressure (dB)')
     ax.set_xlabel('Wave number')
     ax.set_ylabel('Angle of receiver from origin')
     ax.set_zticks([])
     ax.view_init(270,-90)
-    # plt.savefig('../figures/test2_order=' + str(order) + '_surf.eps', format = 'eps')
+    plt.savefig('../figures/test2_order=' + str(order) + '_surf.eps', format = 'eps')
     plt.show()
     
     
@@ -131,7 +131,7 @@ for order in orders:
                         top=0.9, 
                         wspace=0.4, 
                         hspace=1.0)
-    # plt.savefig('../figures/test2_order=' + str(order) + '_polar.eps', format = 'eps')
+    plt.savefig('../figures/test2_order=' + str(order) + '_polar.eps', format = 'eps')
     plt.show()
 
 

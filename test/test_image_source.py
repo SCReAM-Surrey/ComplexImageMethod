@@ -7,8 +7,9 @@ Created on Fri Apr  1 14:40:26 2022
 """
 
 import numpy as np
-import ComplexImageMethod.src.ImageSource as img
-import ComplexImageMethod.src.Geometry as geom
+import ComplexImageMethod as cim
+from ComplexImageMethod import SimpleImageSource as img
+from ComplexImageMethod import SimpleGeometry as geom
 
 #cuboid room dimensions
 L = 4.0 
@@ -36,33 +37,29 @@ receiverPos.append(geom.Point(4, 3, H/2))
 #add wall impedance
 # loop over 6 walls
 nWalls = room.shape.nWalls
-# constant impedance over all frequencies
+wallNames = ['floor', 'ceiling', 'left', 'right', 'front','back']
+
+
 for k in range(nWalls):
-    room.wallImpedance.append([0.95+1j*0.5 for i in range(Nx)])
+    room.wallImpedance[wallNames[k]]= [0.5*(1+1j) for i in range(Nx)]
 
 
 #add walls to the room
 order = 1
 finiteWall = False
-wallList = room.shape.setWallPosition(order, room.wallImpedance)
-srcStrength = {
-                "floor": 1.0,
-                "ceiling": 1.0,
-                "left": 1.0,
-                "right": 1.0,
-                "front": 1.0,
-                "back": 1.0}
+wallList = room.shape.setWallPosition(room.wallImpedance)
+srcStrength = 1.0
 
 #the following is supposed to work for first-order reflections only
 for wallName in wallList:
     
     print(wallName)
-    curWall = wallList[wallName][0] 
+    curWall = wallList[wallName]
 
-    IS = img.ImageSource(srcPos, srcStrength, curWall, order, finiteWall)
+    IS = img.ImageSource(srcPos, srcStrength, curWall.plane.getPointReflection(srcPos), curWall, order, finiteWall)
     angleLims = IS.calculateAngleLimitsWithOtherWalls(curWall)
     print(angleLims)
     
     IS.getRelativeReceiverParameters(receiverPos)
-    IS.calculateImageStrength(curWall, wallName, wave_nums)
-    print(IS.strength[wallName])
+    IS.calculateImageStrength(curWall, wave_nums)
+    print(IS.strength)
