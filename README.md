@@ -12,6 +12,6 @@ complicated geometries nor model scattering due to surface roughness.</p>
 ## Installation
 
 <p> It is best practice to create a virtual environment and then install the package with pip. This automatically downloads the correct versions of the required packages. </p>
-```python3 -m venv env```
-```source env/bin/activate```
-```python3 -m pip install ./```
+`python3 -m venv env`
+`source env/bin/activate`
+`python3 -m pip install ./`
