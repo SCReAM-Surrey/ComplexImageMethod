@@ -7,9 +7,8 @@ Created on Fri Apr  1 14:40:26 2022
 """
 
 import numpy as np
-import ComplexImageMethod as cim
-from ComplexImageMethod import SimpleImageSource as img
-from ComplexImageMethod import SimpleGeometry as geom
+from cim import SimpleImageSource as img
+from cim import SimpleGeometry as geom
 
 # cuboid room dimensions
 L = 4.0

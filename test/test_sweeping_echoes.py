@@ -13,12 +13,17 @@ import matplotlib.pyplot as plt
 from scipy.io.wavfile import write
 from scipy.fft import ifft, fft
 
-# from SDNPy.src.utils import visualize_room as vis
-from ComplexImageMethod import SimpleGeometry as geom
-from ComplexImageMethod import ComplexImageSimulation as sim
+from .utils import visualize_room as vis
+from cim import SimpleGeometry as geom
+from cim import ComplexImageSimulation as sim
+from cim.utils import visualize_room as vis
 
 plt.rcParams.update({"font.size": 8})
 
+# whether to plot room and mic config.
+plot_room = True
+# whether to save plot
+save = False
 
 # =============================================================================
 # helper function
@@ -31,14 +36,14 @@ def plot_spectrogram(
     fft_zp,
     analysis_window,
     method,
-    saveFlag=False,
+    save=False,
     absorp=0,
 ):
 
     S = stft.analysis(rir, fft_size, fft_hop, win=analysis_window, zp_back=fft_zp)
     fig, (ax1, ax2) = plt.subplots(2, 1)
 
-    if saveFlag:
+    if save:
         fig.set_size_inches(4.0, 3.0)
 
     ax1.imshow(
@@ -58,7 +63,7 @@ def plot_spectrogram(
     ax2.set_xlabel("Num samples")
     ax2.set_ylabel("Amplitude")
 
-    if saveFlag:
+    if save:
         plt.savefig(
             "../figures/spec_" + method + "_absorp=" + str(absorp) + ".png", dpi=1000
         )
@@ -145,21 +150,26 @@ for i in range(M):
 # =============================================================================
 # plot to visualize room - optional
 
-# fig = plt.figure()
-# fig.set_size_inches(3.3, 2.5)
-# ax = fig.add_subplot(projection='3d')
-# vis.plot_room(ax,
-#               [room.shape.x / 2, room.shape.y / 2, room.shape.z / 2],
-#               room.shape.x, room.shape.y, room.shape.z)
-# vis.plot_point(ax, srcPos, 'source')
+if plot_room:
+    fig = plt.figure()
+    fig.set_size_inches(3.3, 2.5)
+    ax = fig.add_subplot(projection="3d")
+    vis.plot_room(
+        ax,
+        [room.shape.x / 2, room.shape.y / 2, room.shape.z / 2],
+        room.shape.x,
+        room.shape.y,
+        room.shape.z,
+    )
+    vis.plot_point(ax, srcPos, "source")
 
-# for k in range(M):
-#     vis.plot_point(ax, receiverPos[k], 'mic')
+    for k in range(M):
+        vis.plot_point(ax, receiverPos[k], "mic")
 
-
-# ax.view_init(45,110)
-# # plt.savefig('../figures/test_sweep_setup.png', dpi = 1000)
-# plt.show()
+    ax.view_init(45, 110)
+    if save:
+        plt.savefig("../figures/test_sweep_setup.png", dpi=1000)
+    plt.show()
 
 
 # =============================================================================
@@ -203,18 +213,20 @@ plot_spectrogram(
     fft_zp,
     analysis_window,
     "ISM",
-    True,
+    save,
     np.round(absorp, 3),
 )
-write(
-    "../audio/ISM_absorp="
-    + str(np.round(absorp, 3))
-    + "_order="
-    + str(ref_order)
-    + ".wav",
-    fs,
-    rir_ism,
-)
+
+if save:
+    write(
+        "../audio/ISM_absorp="
+        + str(np.round(absorp, 3))
+        + "_order="
+        + str(ref_order)
+        + ".wav",
+        fs,
+        rir_ism,
+    )
 
 # =============================================================================
 # try the complex image method
@@ -265,9 +277,9 @@ plt.xlim([10, fs / 2.0])
 plt.xlabel("Frequency (Hz)")
 plt.ylabel("Magnitude (dB)")
 ax.legend([ax1, ax2], ["CISM", "ISM"])
-plt.savefig("../figures/freq_comp_absorp=" + str(absorp) + ".png", dpi=1000)
+if save:
+    plt.savefig("../figures/freq_comp_absorp=" + str(absorp) + ".png", dpi=1000)
 plt.show()
-
 
 #  plot spectrograms
 plot_spectrogram(
@@ -278,23 +290,23 @@ plot_spectrogram(
     fft_zp,
     analysis_window,
     "CISM",
-    True,
+    save,
     np.round(absorp, 3),
 )
-write(
-    "../audio/CISM_absorp="
-    + str(np.round(absorp, 3))
-    + "_order="
-    + str(ref_order)
-    + ".wav",
-    fs,
-    rir_cism,
-)
 
+if save:
+    write(
+        "../audio/CISM_absorp="
+        + str(np.round(absorp, 3))
+        + "_order="
+        + str(ref_order)
+        + ".wav",
+        fs,
+        rir_cism,
+    )
 
 # ssf_c = met.sweeping_echo_measure(rir_cism,fs, t_min=0, t_max=0.5, fb=100)
 # print('CISM sweeping echo measure' , ssf_c)
-
 
 # =============================================================================
 # # the position of the direct path, as given by CSIM is correct. PRA is adding

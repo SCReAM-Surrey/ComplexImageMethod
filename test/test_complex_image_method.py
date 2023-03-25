@@ -7,15 +7,20 @@ Created on Fri Apr  1 11:42:35 2022
 """
 
 import numpy as np
-from ComplexImageMethod import ComplexImageSimulation as sim
-from ComplexImageMethod import SimpleGeometry as geom
+from cim import ComplexImageSimulation as sim
+from cim import SimpleGeometry as geom
+from cim.utils import visualize_room as vis
 
-# from SDNPy.src.utils import visualize_room as vis
 from matplotlib import cm
 import matplotlib.pyplot as plt
 
 plt.rcParams.update({"font.size": 8})
-
+# whether to plot the room and mic setup
+plot_room = True
+# whether to save the plots
+save = False
+# constant or frequency dependent admittance
+admit = "const"
 
 # cuboid room dimensions
 L = 4.0
@@ -58,37 +63,44 @@ for order in orders:
     wallNames = ["floor", "ceiling", "left", "right", "front", "back"]
 
     for k in range(nWalls):
-        # constant admittance
-        # room.wallImpedance[wallNames[k]]= [0.5*(1+1j) for i in range(Nx)]
-
-        # frequency-dependent admittance
-        room.wallImpedance[wallNames[k]] = [
-            (0.5 + 0.5 * 1j) * (1.0 / (1 + np.exp(-0.1 * wave_nums[i])))
-            for i in range(Nx)
-        ]
+        if admit == "const":
+            # constant admittance
+            room.wallImpedance[wallNames[k]] = [0.5 * (1 + 1j) for i in range(Nx)]
+        else:
+            # frequency-dependent admittance
+            room.wallImpedance[wallNames[k]] = [
+                (0.5 + 0.5 * 1j) * (1.0 / (1 + np.exp(-0.1 * wave_nums[i])))
+                for i in range(Nx)
+            ]
 
     csim = sim.ComplexImageSimulation(room, srcPos, receiverPos, wave_nums, order)
     ref_pressure, total_pressure = csim.run()
 
     #####################################
     # draw the setup
-    # plot to visualize room - optional
-    # fig = plt.figure()
-    # fig.set_size_inches(3.3, 2.5)
-    # ax = fig.add_subplot(projection='3d')
-    # vis.plot_room(ax,
-    #               [room.shape.x / 2, room.shape.y / 2, room.shape.z / 2],
-    #               room.shape.x, room.shape.y, room.shape.z)
-    # vis.plot_point(ax, srcPos, 'source')
+    if plot_room and order == 1:
+        # plot to visualize room - optional
+        fig = plt.figure()
+        fig.set_size_inches(3.3, 2.5)
+        ax = fig.add_subplot(projection="3d")
+        vis.plot_room(
+            ax,
+            [room.shape.x / 2, room.shape.y / 2, room.shape.z / 2],
+            room.shape.x,
+            room.shape.y,
+            room.shape.z,
+        )
+        vis.plot_point(ax, srcPos, "source")
 
-    # for k in range(Ny):
-    #     vis.plot_point(ax, receiverPos[k], 'mic')
+        for k in range(Ny):
+            vis.plot_point(ax, receiverPos[k], "mic")
 
-    # ax.text(2,3,0, r'$\theta = 90^{\circ}$')
-    # ax.text(1,1,1.5, r'$\theta = 0^{\circ}$')
-    # ax.view_init(45,110)
-    # # plt.savefig('../figures/test1_setup.png', dpi = 1000)
-    # plt.show()
+        ax.text(2, 3, 0, r"$\theta = 90^{\circ}$")
+        ax.text(1, 1, 1.5, r"$\theta = 0^{\circ}$")
+        ax.view_init(45, 110)
+        if save:
+            plt.savefig("../figures/test1_setup.png", dpi=1000)
+        plt.show()
 
     # surface plot
 
@@ -109,7 +121,8 @@ for order in orders:
     ax.set_ylabel("Angle of receiver from origin")
     ax.set_zticks([])
     ax.view_init(270, -90)
-    plt.savefig("../figures/test2_order=" + str(order) + "_surf.eps", format="eps")
+    if save:
+        plt.savefig(f"../figures/admit={admit}_order={order}_surf.eps", format="eps")
     plt.show()
 
     # polar plot
@@ -130,5 +143,6 @@ for order in orders:
     plt.subplots_adjust(
         left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.4, hspace=1.0
     )
-    plt.savefig("../figures/test2_order=" + str(order) + "_polar.eps", format="eps")
+    if save:
+        plt.savefig(f"../figures/admit={admit}_order={order}_polar.eps", format="eps")
     plt.show()
