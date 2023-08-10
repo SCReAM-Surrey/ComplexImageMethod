@@ -53,6 +53,12 @@ class Point:
             else:
                 return False
 
+    def getAngle(self, p):
+        num = self.getDotProduct(p)
+        den = self.getNorm() * np.sqrt(p.x * p.x + p.y * p.y + p.z * p.z)
+        return np.arccos(num / den)
+
+
     def getNorm(self):
 
         norm = np.sqrt(self.x * self.x + self.y * self.y + self.z * self.z)

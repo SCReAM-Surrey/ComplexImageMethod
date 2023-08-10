@@ -14,13 +14,20 @@ from cim.utils import visualize_room as vis
 from matplotlib import cm
 import matplotlib.pyplot as plt
 
+def getAngle(x, y):
+    num = x.getDotProduct(y)
+    den = y.getNorm() * y.getNorm()
+    return np.arccos(num / den)
+
 plt.rcParams.update({"font.size": 8})
 # whether to plot the room and mic setup
 plot_room = True
 # whether to save the plots
-save = False
+save = True
 # constant or frequency dependent admittance
-admit = "const"
+admit = "soft"
+# complex IM or normal IM
+img_type = "complex"
 
 # cuboid room dimensions
 L = 4.0
@@ -43,9 +50,11 @@ rx = r * np.cos(theta)
 ry = L / 2 * np.ones([Ny, 1])
 rz = r * np.sin(theta)
 receiverPos = list()
+srcRecAngle = np.zeros(Ny)
 
 for i in range(Ny):
     receiverPos.append(geom.Point(rx[i], ry[i], rz[i]))
+    srcRecAngle[i] = getAngle(srcPos, receiverPos[i])
 
 
 ######################################
@@ -66,6 +75,8 @@ for order in orders:
         if admit == "const":
             # constant admittance
             room.wallImpedance[wallNames[k]] = [0.5 * (1 + 1j) for i in range(Nx)]
+        elif admit == "rigid":
+            room.wallImpedance[wallNames[k]] = [0 for i in range(Nx)]
         else:
             # frequency-dependent admittance
             room.wallImpedance[wallNames[k]] = [
@@ -73,7 +84,7 @@ for order in orders:
                 for i in range(Nx)
             ]
 
-    csim = sim.ComplexImageSimulation(room, srcPos, receiverPos, wave_nums, order)
+    csim = sim.ComplexImageSimulation(room, srcPos, receiverPos, wave_nums, order, img_type=img_type)
     ref_pressure, total_pressure = csim.run()
 
     #####################################
@@ -95,11 +106,11 @@ for order in orders:
         for k in range(Ny):
             vis.plot_point(ax, receiverPos[k], "mic")
 
-        ax.text(2, 3, 0, r"$\theta = 90^{\circ}$")
-        ax.text(1, 1, 1.5, r"$\theta = 0^{\circ}$")
+        ax.text(2, 3, 0, r"$\theta = 0^{\circ}$")
+        ax.text(1, 1, 1.5, r"$\theta = 90^{\circ}$")
         ax.view_init(45, 110)
         if save:
-            plt.savefig("../figures/test1_setup.png", dpi=1000)
+            plt.savefig("figures/test1_setup.png", dpi=1000)
         plt.show()
 
     # surface plot
@@ -110,19 +121,20 @@ for order in orders:
     ax = fig.add_subplot(projection="3d")
     surf = ax.plot_surface(
         K,
-        Theta / np.pi,
+        np.rad2deg(Theta),
         20 * np.log10(np.abs(total_pressure)),
         cmap=cm.jet,
         linewidth=0.1,
     )
-    if order == len(orders) - 1:
-        fig.colorbar(surf, shrink=0.5, aspect=5, label="Pressure (dB)")
+    # if order == 2:
+    #     fig.colorbar(surf, shrink=0.5, aspect=5, label="Pressure (dB)",
+    #         orientation="vertical", labelpad=0.01)
     ax.set_xlabel("Wave number")
     ax.set_ylabel("Angle of receiver from origin")
     ax.set_zticks([])
     ax.view_init(270, -90)
     if save:
-        plt.savefig(f"../figures/admit={admit}_order={order}_surf.eps", format="eps")
+        plt.savefig(f"figures/admit={admit}_order={order}_surf.eps", format="eps")
     plt.show()
 
     # polar plot
@@ -138,11 +150,12 @@ for order in orders:
             "k = " + str(round(wave_nums[idx[j]], 3)),
             fontdict={"fontsize": 8, "fontweight": "light"},
         )
-
     # set the spacing between subplots
     plt.subplots_adjust(
-        left=0.1, bottom=0.1, right=0.9, top=0.9, wspace=0.4, hspace=1.0
+        left=0.1, bottom=0.1, right=0.9, top=0.8, wspace=0.4, hspace=1.0
     )
+    plt.suptitle(f"{admit} wall, order={order}")
+
     if save:
-        plt.savefig(f"../figures/admit={admit}_order={order}_polar.eps", format="eps")
+        plt.savefig(f"figures/admit={admit}_order={order}_polar.eps", format="eps")
     plt.show()

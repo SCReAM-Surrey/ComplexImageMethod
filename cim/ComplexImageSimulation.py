@@ -11,12 +11,13 @@ import cim.SimpleImageSource as simp_img
 
 
 class ComplexImageSimulation:
-    def __init__(self, room, source, mic_array, wave_num, order, *args):
+    def __init__(self, room, source, mic_array, wave_num, order, img_type : str="complex",*args):
         self.room = room
         self.source = source
         self.mic_array = mic_array
         self.wave_num = wave_num
         self.maxOrder = order  # reflection order
+        self.img_type = img_type
         if len(args) == 0:
             self.finiteWall = False
         else:
@@ -56,6 +57,7 @@ class ComplexImageSimulation:
                         wall.plane.getPointReflection(self.source),
                         wall,
                         i,
+                        self.img_type,
                     )
                     # find receiver distance and angle from image source
                     S0.getRelativeReceiverParameters(self.mic_array)
@@ -96,6 +98,7 @@ class ComplexImageSimulation:
                                             otherWall.plane.getPointReflection(S.pos),
                                             otherWall,
                                             i + 1,
+                                            self.img_type,
                                         )
 
                                         Sm.getRelativeReceiverParameters(self.mic_array)

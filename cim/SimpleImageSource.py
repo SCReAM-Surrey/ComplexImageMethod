@@ -30,7 +30,7 @@ class ImageSource:
     Class that keeps track of the image sources and their orders
     """
 
-    def __init__(self, sourcePos, sourceStrength, pos, wall, order, *args):
+    def __init__(self, sourcePos, sourceStrength, pos, wall, order, img_type : str = "complex", *args):
 
         self.wall = wall
         self.pos = pos  # position of image source
@@ -40,6 +40,7 @@ class ImageSource:
         self.order = order
         self.theta = []  # angle with receiver
         self.r = []  # distance from reciver
+        self.img_type = img_type
 
         if len(args) == 0:
             self.finite_walls = False
@@ -115,40 +116,39 @@ class ImageSource:
         beta = wall.wallImpedance
         [beta, theta] = np.meshgrid(beta, self.theta)
         gamma0 = np.cos(theta)
+        R0 = np.divide(gamma0 - beta, gamma0 + beta)
 
-        if self.finite_walls:
-            R0 = np.divide(gamma0 - beta, gamma0 + beta)
-            rho = np.divide(gamma0 + beta, np.sqrt(2 * (1 + np.multiply(gamma0, beta))))
-            angleLims = self.calculateAngleLimitsWithOtherWalls(wall)
-            etaMax = theta - (np.ones((Ny, Nx)) * angleLims[0])
-            tMax = -1j * (1 - np.cos(etaMax))
 
-            etaMin = theta - (np.ones((Ny, Nx)) * angleLims[1])
-            tMin = -1j * (1 - np.cos(etaMin))
+        if self.img_type == 'complex':
+            if self.finite_walls:
+                rho = np.divide(gamma0 + beta, np.sqrt(2 * (1 + np.multiply(gamma0, beta))))
+                angleLims = self.calculateAngleLimitsWithOtherWalls(wall)
+                etaMax = theta - (np.ones((Ny, Nx)) * angleLims[0])
+                tMax = -1j * (1 - np.cos(etaMax))
 
-            integral = self.evaluateIntegral(kr, rho, tMax) - self.evaluateIntegral(
-                kr, rho, tMin
-            )
-            self.strength = R0 + (1 - R0) * (
-                1 - (rho * np.exp(-1j * kr * rho) * integral)
-            )
+                etaMin = theta - (np.ones((Ny, Nx)) * angleLims[1])
+                tMin = -1j * (1 - np.cos(etaMin))
 
+                integral = self.evaluateIntegral(kr, rho, tMax) - self.evaluateIntegral(
+                    kr, rho, tMin
+                )
+                self.strength = R0 + (1 - R0) * (
+                    1 - (rho * np.exp(-1j * kr * rho) * integral)
+                )
+
+            else:
+
+                R0 = np.divide(gamma0 - beta, gamma0 + beta)
+                rho = (
+                    1j
+                    * kr
+                    / 2.0
+                    * np.divide(np.power(beta + gamma0, 2), (1 + beta * gamma0))
+                )
+                F = 1 + 1j * np.sqrt(np.pi * rho) * np.exp(-rho) * erfc(-1j * np.sqrt(rho))
+                self.strength = R0 + (1 - R0) * F
         else:
-
-            R0 = np.divide(gamma0 - beta, gamma0 + beta)
-            rho = (
-                1j
-                * kr
-                / 2.0
-                * np.divide(np.power(beta + gamma0, 2), (1 + beta * gamma0))
-            )
-            F = 1 + 1j * np.sqrt(np.pi * rho) * np.exp(-rho) * erfc(-1j * np.sqrt(rho))
-            self.strength = R0 + (1 - R0) * F
-
-            # # faster version with scipy
-            # R0 = np.divide(gamma0*beta - 1.0, beta*gamma0 + 1.0)
-            # w = np.sqrt(1j*kr/2.0) * (beta+gamma0)
-            # self.strength = R0 + (1-R0)*(1 + (1j*w*np.sqrt(np.pi)*np.exp(-np.power(w,2))* erfc(-1j*w)))
+            self.strength = R0
 
         # attenuate by strength of source
         self.strength *= self.sourceStrength
