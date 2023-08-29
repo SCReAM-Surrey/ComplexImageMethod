@@ -6,6 +6,7 @@ Created on Fri May 27 10:39:38 2022
 @author: od0014
 """
 import numpy as np
+import os
 import pyroomacoustics as pra
 from pyroomacoustics.transform import stft
 from pyroomacoustics import metrics as met
@@ -13,7 +14,6 @@ import matplotlib.pyplot as plt
 from scipy.io.wavfile import write
 from scipy.fft import ifft, fft
 
-from .utils import visualize_room as vis
 from cim import SimpleGeometry as geom
 from cim import ComplexImageSimulation as sim
 from cim.utils import visualize_room as vis
@@ -23,7 +23,15 @@ plt.rcParams.update({"font.size": 8})
 # whether to plot room and mic config.
 plot_room = True
 # whether to save plot
-save = False
+save = True
+audio_path = "audio/"
+fig_path = "figures/"
+
+if save:
+    if not os.path.exists(audio_path):
+        os.mkdir(audio_path)
+    if not os.path.exists(fig_path):
+        os.mkdir(fig_path)
 
 # =============================================================================
 # helper function
@@ -65,7 +73,7 @@ def plot_spectrogram(
 
     if save:
         plt.savefig(
-            "../figures/spec_" + method + "_absorp=" + str(absorp) + ".png", dpi=1000
+            fig_path + "spec_" + method + "_absorp=" + str(absorp) + ".png", dpi=1000
         )
 
     plt.show()
@@ -168,7 +176,7 @@ if plot_room:
 
     ax.view_init(45, 110)
     if save:
-        plt.savefig("../figures/test_sweep_setup.png", dpi=1000)
+        plt.savefig(fig_path +"test_sweep_setup.png", dpi=1000)
     plt.show()
 
 
@@ -219,7 +227,7 @@ plot_spectrogram(
 
 if save:
     write(
-        "../audio/ISM_absorp="
+        audio_path + "ISM_absorp="
         + str(np.round(absorp, 3))
         + "_order="
         + str(ref_order)
@@ -278,7 +286,7 @@ plt.xlabel("Frequency (Hz)")
 plt.ylabel("Magnitude (dB)")
 ax.legend([ax1, ax2], ["CISM", "ISM"])
 if save:
-    plt.savefig("../figures/freq_comp_absorp=" + str(absorp) + ".png", dpi=1000)
+    plt.savefig(fig_path + "freq_comp_absorp=" + str(absorp) + ".png", dpi=1000)
 plt.show()
 
 #  plot spectrograms
@@ -296,7 +304,7 @@ plot_spectrogram(
 
 if save:
     write(
-        "../audio/CISM_absorp="
+        audio_path + "CISM_absorp="
         + str(np.round(absorp, 3))
         + "_order="
         + str(ref_order)

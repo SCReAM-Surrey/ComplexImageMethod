@@ -21,6 +21,10 @@ plt.rcParams.update({"font.size": 8})
 plot_room = True
 # whether to save the plots
 save = True
+save_path = "figures/"
+if not os.path.exists(save_path):
+    os.mkdir(save_path)
+
 # constant or frequency dependent admittance
 admit = "soft"
 # complex IM or normal IM
@@ -107,9 +111,8 @@ for order in orders:
         ax.text(1, 1, 1.5, r"$\theta = 90^{\circ}$")
         ax.view_init(45, 110)
         if save:
-            if not os.path.exists('figures/'):
-                os.mkdir('figures/')
-            plt.savefig("figures/test1_setup.png", dpi=1000)
+
+            plt.savefig(f"{save_path}test1_setup.png", dpi=1000)
         plt.show()
 
     # surface plot
@@ -133,7 +136,7 @@ for order in orders:
     ax.set_zticks([])
     ax.view_init(270, -90)
     if save:
-        plt.savefig(f"figures/admit={admit}_order={order}_surf.eps", format="eps")
+        plt.savefig(f"{save_path}admit={admit}_order={order}_surf.eps", format="eps")
     plt.show()
 
     # polar plot
@@ -156,5 +159,5 @@ for order in orders:
     plt.suptitle(f"{admit} wall, order={order}")
 
     if save:
-        plt.savefig(f"figures/admit={admit}_order={order}_polar.eps", format="eps")
+        plt.savefig(f"{save_path}admit={admit}_order={order}_polar.eps", format="eps")
     plt.show()
