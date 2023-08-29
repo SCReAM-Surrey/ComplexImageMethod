@@ -56,7 +56,7 @@ class Point:
     def getAngle(self, p):
         num = self.getDotProduct(p)
         den = self.getNorm() * np.sqrt(p.x * p.x + p.y * p.y + p.z * p.z)
-        return np.arccos(num / den)
+        return np.arccos(num / den).item()
 
 
     def getNorm(self):

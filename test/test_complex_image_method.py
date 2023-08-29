@@ -7,6 +7,7 @@ Created on Fri Apr  1 11:42:35 2022
 """
 
 import numpy as np
+import os
 from cim import ComplexImageSimulation as sim
 from cim import SimpleGeometry as geom
 from cim.utils import visualize_room as vis
@@ -14,10 +15,6 @@ from cim.utils import visualize_room as vis
 from matplotlib import cm
 import matplotlib.pyplot as plt
 
-def getAngle(x, y):
-    num = x.getDotProduct(y)
-    den = y.getNorm() * y.getNorm()
-    return np.arccos(num / den)
 
 plt.rcParams.update({"font.size": 8})
 # whether to plot the room and mic setup
@@ -47,15 +44,15 @@ wave_nums = np.linspace(1, 30, Nx)
 r = 2
 theta = np.linspace(0, np.pi / 2, Ny)
 rx = r * np.cos(theta)
-ry = L / 2 * np.ones([Ny, 1])
+ry = L / 2 * np.ones(Ny)
 rz = r * np.sin(theta)
 receiverPos = list()
 srcRecAngle = np.zeros(Ny)
 
 for i in range(Ny):
-    receiverPos.append(geom.Point(rx[i], ry[i], rz[i]))
-    srcRecAngle[i] = getAngle(srcPos, receiverPos[i])
-
+    curReceiverPos = geom.Point(rx[i], ry[i], rz[i])
+    srcRecAngle[i] = srcPos.getAngle(curReceiverPos)
+    receiverPos.append(curReceiverPos)
 
 ######################################
 # run the simulation
@@ -110,6 +107,8 @@ for order in orders:
         ax.text(1, 1, 1.5, r"$\theta = 90^{\circ}$")
         ax.view_init(45, 110)
         if save:
+            if not os.path.exists('figures/'):
+                os.mkdir('figures/')
             plt.savefig("figures/test1_setup.png", dpi=1000)
         plt.show()
 
