@@ -20,7 +20,7 @@ kr = linspace(0,50,Nx);
 
 gamma0 = cos(THETA0);    
 
-%%
+
 for i = 1:length(beta)
 
     %source strength at image position
@@ -28,23 +28,14 @@ for i = 1:length(beta)
     R0 = (gamma0 - beta(i))./(gamma0 + beta(i));
     Q = R0 + ((1-R0).*(rho.^(0.25)).*exp(rho/2).*whittakerW(-0.25,0.25,rho));
     
-%     % image strength should be smaller
-%     assert(all(all(abs(Q) <= 1.0)),['Image strength for admittance = ', num2str(beta),' too large']);
+    % image strength should be smaller
+    assert(all(all(abs(Q) <= 1.0)),['Image strength for admittance = ', num2str(beta),' too large']);
   
     %pressure at receiver in decibels
     p = (exp(1j*KR)./KR).*(1+Q);
     
-    % plot
-%     figure(2*i-1);
-%     surf(KR,THETA0/pi,20*log10(abs(p)));
-%     xlabel('kr'); ylabel('Angle from S to R'); ylim([0,0.5]);
-%     axis tight;
-%     view(0,90);
-%     colorbar;
-%     title(['admittance = ', num2str(beta(i))]);
 
     %look at the directional pressure at certain values of kr
-%     figure(2*i);
     fig = figure('Units','inches', 'Position',[0 0 2.2 3.5],'PaperPositionMode','auto');
 
     idx = [2,15,50];
@@ -57,12 +48,10 @@ for i = 1:length(beta)
 
 
     end
-%     sgtitle(['admittance = ', num2str(beta(i))]);
+    sgtitle(['admittance = ', num2str(beta(i))]);
     print(fig,['../figures/S-on-wall-beta=',num2str(beta(i)),'.eps'], '-depsc');
 
 end
-
-
 
 
 
@@ -102,22 +91,8 @@ for i = 1:length(beta)
     frac = KR2./KR1;
     p = exp(1i*KR1)./(KR1).*(1 + frac.*Q.*exp(1i*KR1.*(frac-1)));
 
-    % plot
-%     figure(2*i-1);
-%     surf(KR2, THETA0/pi, 20*log10(abs(p)));
-%     xlabel('kr'); ylabel('Angle from S to R'); ylim([0,0.5]);
-%     axis tight;
-%     view(0,90);
-%     colorbar;
-%     title(['admittance = ', num2str(beta(i))]);
-
     %look at the directional pressure at certain values of kr
-%     figure(2*i);
     fig = figure('Units','inches', 'Position',[0 0 2.5 4.2],'PaperPositionMode','auto');
-%     [x,y,z] = pol2cart(THETA0,  KR2, 20*log10(abs(p)));
-%     mesh(x,y,z);
-%     ylim([0,70]); xlim([0,90]);
-%     ylabel('kr'); xlabel('$\theta^{\circ}$', 'Interpreter' , 'latex'); zlabel('Pressure (dB)');
 
     
     idx = [2,15,50];
@@ -131,7 +106,7 @@ for i = 1:length(beta)
 
 
     end
-%     sgtitle(['admittance = ', num2str(beta(i))], 'FontSize',8, 'FontName','Times');
+    sgtitle(['admittance = ', num2str(beta(i))], 'FontSize',8, 'FontName','Times');
     print(['../figures/S-above-wall-beta=',num2str(round(beta(i),2)),'.eps'], '-depsc');
 
 end

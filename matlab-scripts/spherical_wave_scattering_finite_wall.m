@@ -53,7 +53,6 @@ zr = r2.*ones(1, Ny);
 plot3(xr,yr,zr,'rx'); hold off;
 
 xlim([0,L]); ylim([0,L]); zlim([-h-0.2, r2]);
-% print(['../figures/finite_wall_setup.eps'], '-depsc');
 
 %%
 
@@ -81,10 +80,7 @@ idx = [2,10,50];
 for i = 1:length(beta)
         R0 = (gamma0 - beta(i))./(gamma0 + beta(i));
 
-        % finite wall scattering
         rho = (gamma0+beta(i))./sqrt(2*(1+gamma0.*beta(i)));
-%         integral = evaluateIntegral(k*r2,rho,tMax) - evaluateIntegral(k*r2, rho, tMin);
-%         Q = R0 + (1-R0).*(1 - rho.*exp(-1i*k*r2.*rho).*integral);
 
         % for infinite wall scattering
         rho = 1i*k*r2.*(rho.^2);
@@ -92,15 +88,6 @@ for i = 1:length(beta)
 
         frac = (k.*r2)./kr1;
         p = exp(1i*kr1)./(kr1).*(1 + frac.*Q.*exp(1i*kr1.*(frac-1)));
-   
-%         figure(2*i);
-%         surf(k.*r2, theta0/pi, 20*log10(abs(p)));
-%         xlabel('kr'); ylabel('Angle from S to R'); 
-%         axis tight;
-%         view(0,90);ylim([0,0.5]);
-%         colorbar;
-%         title(['admittance = ', num2str(beta(i))]);
-%         print(['../figures/finite-wall/pressure-beta=',num2str(beta(i)),'.eps'], '-depsc');
 
         figure(2*i+1);    
         for j = 1:length(idx)
@@ -116,7 +103,6 @@ end
 
 
 %% helper functions
-
 
 function [dist] = getDistance(point1, point2)
     dist = sqrt((point1(1) - point2(1))^2 + (point1(2) - point2(2))^2 + (point1(3) - point2(3))^2);

@@ -65,7 +65,6 @@ end
 %% draw the setup
 
 figure(1); 
-% fig = figure('Units','inches', 'Position',[0 0 3.29 2.2],'PaperPositionMode','auto');
 
 
 % plot source and image source
@@ -79,7 +78,7 @@ plot3(imagePos(2,:,1), imagePos(2,:,2), imagePos(2,:,3), 'ko');hold on;
 text(imagePos(2,:,1)-0.5, imagePos(2,:,2)-0.1, imagePos(2,:,3)-0.2, 'Q_c', 'FontSize',8); hold on;
 
 
-% 
+
 % plot reflecting wall
 [x,y] = meshgrid(linspace(0,L(1),100));
 z = zeros(100,100);
@@ -94,8 +93,7 @@ plot3(rx,ry,rz,'rx'); hold off;
 view(10,5);
 
 xlim([0,L(1)]); zlim([-1.5*H, L(2)+1.8*H]);  ylim([0,L(1)]); 
-% set(gca, 'Visible', 'off');
-% print(['../figures/parallel_walls_setup.eps'], '-depsc');
+set(gca, 'Visible', 'off');
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -143,11 +141,10 @@ for n = 1:Nwalls
         end
         pR = pR + (Q(:,:,j,n).*exp(1i*kr2)./R2);
 
-
-%         % plane wave approximation
-%         if j == 1
-%             pR_approx = pR_approx + exp(1i*kr2).*((beta(n) - cos(theta0))./(beta(n) + cos(theta0)));
-%         end
+        % plane wave approximation
+        if j == 1
+            pR_approx = pR_approx + exp(1i*kr2).*((beta(n) - cos(theta0))./(beta(n) + cos(theta0)));
+        end
     end
 
 
@@ -158,22 +155,17 @@ kr1 = K.*R1;
 pI = exp(1i.*kr1)./R1;
 
 
-
-
 %% plot
 
 close all;
 
 generatePressurePlots(pI,k,theta, 'title', 'Incident pressure');
-
 generatePressurePlots(pR,k,theta, 'title', 'Scattered Pressure');
-
 generatePressurePlots(pR+pI,k,theta, 'title', 'Total pressure');
 
 
 
 %% helper functions
-
 
 function [dist] = getDistance(point1, point2)
     dist = sqrt((point1(:,1) - point2(:,1)).^2 + (point1(:,2) - point2(:,2)).^2 ...

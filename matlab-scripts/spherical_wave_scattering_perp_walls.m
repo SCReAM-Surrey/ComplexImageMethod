@@ -35,7 +35,6 @@ receiverPos = [rx;ry;rz];
 
 %% draw the setup
 
-% figure(1); 
 fig = figure('Units','inches', 'Position',[0 0 3.29 2.2],'PaperPositionMode','auto');
 
 
@@ -49,19 +48,19 @@ text(imagePos(1,:)-0.2, imagePos(2,:), imagePos(3,:)-0.6, 'Q', 'FontSize',8);
 plot3(secondImagePos(1), secondImagePos(2), secondImagePos(3), 'ko');hold on;
 text(secondImagePos(1)-0.25, secondImagePos(2)-0.1, secondImagePos(3)-0.7, 'Q_s', 'FontSize',8); hold on;
 
-% line([sourcePos(1),0], [sourcePos(2),0],[sourcePos(3),0]);hold on;
-% text(sourcePos(1)-0.25, sourcePos(2)-0.25, sourcePos(3)-0.2, '\theta_{min}');
-% 
-% line([sourcePos(1),L(1)], [sourcePos(2),0],[sourcePos(3),0]);hold on;
-% text(sourcePos(1)+0.2, sourcePos(2), sourcePos(3)-0.2, '\theta_{max}');
-% 
-% line([sourcePos(1),0], [sourcePos(2),0],[sourcePos(3),L(2)]);hold on;
-% % text(sourcePos(1)+0.25, sourcePos(2)+0.25, sourcePos(3)-0.2, '\theta_{max}');
-% 
-% line([sourcePos(1),  sourcePos(1)], [sourcePos(2), sourcePos(2)], [h(1),-h(1)], 'LineStyle','--'); hold on;
-% line([h(2),-h(2)], [sourcePos(2), sourcePos(2)], [sourcePos(3), sourcePos(3)], 'LineStyle','--'); hold on;
+line([sourcePos(1),0], [sourcePos(2),0],[sourcePos(3),0]);hold on;
+text(sourcePos(1)-0.25, sourcePos(2)-0.25, sourcePos(3)-0.2, '\theta_{min}');
 
-% 
+line([sourcePos(1),L(1)], [sourcePos(2),0],[sourcePos(3),0]);hold on;
+text(sourcePos(1)+0.2, sourcePos(2), sourcePos(3)-0.2, '\theta_{max}');
+
+line([sourcePos(1),0], [sourcePos(2),0],[sourcePos(3),L(2)]);hold on;
+text(sourcePos(1)+0.25, sourcePos(2)+0.25, sourcePos(3)-0.2, '\theta_{max}');
+
+line([sourcePos(1),  sourcePos(1)], [sourcePos(2), sourcePos(2)], [h(1),-h(1)], 'LineStyle','--'); hold on;
+line([h(2),-h(2)], [sourcePos(2), sourcePos(2)], [sourcePos(3), sourcePos(3)], 'LineStyle','--'); hold on;
+
+
 % plot reflecting wall
 [x,y] = meshgrid(linspace(0,L(1),100));
 z = zeros(100,100);
@@ -72,7 +71,7 @@ x = zeros(100,100);
 plot3(x,y,z,'k'); hold off;
 
 % plot receiver positions
-% plot3(rx,ry,rz,'rx'); hold off;
+plot3(rx,ry,rz,'rx'); hold off;
 view(-10,10);
 
 xlim([-h(2)-0.2,L(1)]); zlim([-h(1)-0.2, L(2)]);  ylim([0,L(1)]); 
@@ -113,7 +112,6 @@ for n = 1:Nwalls
     Q(:,:,n) = calculateImageStrength(kr2, theta0 ,beta(n), thetaMin(n), thetaMax(n));
 
     frac = kr2./kr1;
-%     pI = pI + exp(1i*kr1)./(kr1).*(1 + frac.*Q(:,:,n).*exp(1i*kr1.*(frac-1)));
     pI = pI + exp(1i*kr1)./R1 + (Q(:,:,n).*exp(1i*kr2)./R2);
     
 
